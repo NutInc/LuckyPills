@@ -11,8 +11,16 @@
   using System.Linq;
   using UnityEngine;
   
-  public class EventHandlers : Plugin<Config>
+  public class EventHandlers
   {
+
+    private readonly Plugin _plugin;
+
+    public EventHandlers(Plugin plugin)
+    {
+      _plugin = plugin;
+    }
+
     private static void SpawnGrenadeOnPlayer(Player ply,
       GrenadeType grenadeType,
       float timer,
@@ -51,21 +59,56 @@
       NetworkServer.Spawn(grenade.gameObject);
     }
 
-    private static IEnumerator<float> VomitTime(Player player, float randomTimer)
+    private IEnumerator<float> GrenadeVomitTime(Player player, float randomTimer)
     {
       for (var i = 0; i < randomTimer * 10.0 && player.IsAlive; ++i)
       {
-        yield return Timing.WaitForSeconds(0.1f);
+        yield return Timing.WaitForSeconds(_plugin.Config.GrenadeVomitInterval);
         SpawnGrenadeOnPlayer(player, GrenadeType.FragGrenade, 5f);
       }
     }
+    
+    private IEnumerator<float> FlashVomitTime(Player player, float randomTimer)
+    {
+      for (var i = 0; i < randomTimer * 10.0 && player.IsAlive; ++i)
+      {
+        yield return Timing.WaitForSeconds(_plugin.Config.FlashVomitInterval);
+        player.Health -= 1;
+        SpawnGrenadeOnPlayer(player, GrenadeType.Flashbang, 5f);
+        if (!(player.Health < 0)) continue;
+        player.Kill();
+      }
+    }
+    
+    private IEnumerator<float> BallVomitTime(Player player, float randomTimer)
+    {
+      for (var i = 0; i < randomTimer * 10.0 && player.IsAlive; ++i)
+      {
+        yield return Timing.WaitForSeconds(_plugin.Config.BallVomitInterval);
+        SpawnGrenadeOnPlayer(player, GrenadeType.Scp018, 5f);
+      }
+    }
 
+    public void OnPickupPill(PickingUpItemEventArgs ev)
+    {
+      if (ev.Pickup.ItemId == ItemType.Painkillers)
+      {
+        ev.Player.ShowHint(_plugin.Config.PickupMessage);
+      }
+    }
+    
     public void OnEatThePill(UsingMedicalItemEventArgs ev)
     {
+      Timing.RunCoroutine(RunPillCoroutine(ev));
+    }
+
+    private IEnumerator<float> RunPillCoroutine(UsingMedicalItemEventArgs ev)
+    {
+      yield return Timing.WaitForSeconds(3f);
       if (ev.Item != ItemType.Painkillers)
-        return;
+        yield break;
       var type = this.NextEffect();
-      var num = UnityEngine.Random.Range(Config.MinDuration, Config.MaxDuration);
+      var num = UnityEngine.Random.Range(_plugin.Config.MinDuration, _plugin.Config.MaxDuration);
       ev.Player.RemoveItem();
       ev.Player.CurrentItem = new Inventory.SyncItemInfo()
       {
@@ -92,21 +135,34 @@
           ev.Player.IsGodModeEnabled = true;
           Timing.CallDelayed(num, () => ev.Player.IsGodModeEnabled = false);
           break;
+        
         case "paper":
           ev.Player.Scale = new Vector3(1f, 1f, 0.01f);
           Timing.CallDelayed(num, () => ev.Player.Scale = new Vector3(1f, 1f, 1f));
           break;
+        
         case "upsidedown":
           ev.Player.Scale = new Vector3(1f, -1f, 1f);
           Timing.CallDelayed(num, () => ev.Player.Scale = new Vector3(1f, 1f, 1f));
           break;
+        
         case "flattened":
           ev.Player.Scale = new Vector3(1f, 0.5f, 1f);
           Timing.CallDelayed(num, () => ev.Player.Scale = new Vector3(1f, 1f, 1f));
           break;
+        
         case "bombvomit":
-          Timing.RunCoroutine(VomitTime(ev.Player, num));
+          Timing.RunCoroutine(GrenadeVomitTime(ev.Player, num));
           break;
+        
+        case "flashvomit":
+          Timing.RunCoroutine(FlashVomitTime(ev.Player, num));
+          break;
+        
+        case "ballvomit":
+          Timing.RunCoroutine(BallVomitTime(ev.Player, num));
+          break;
+        
         case "scp268":
           ev.Player.IsInvisible = true;
           Timing.CallDelayed(num, () => ev.Player.IsInvisible = false);
@@ -163,7 +219,7 @@
           break;
       }
     }
-
-    private string NextEffect() => Config.PossibleEffects[UnityEngine.Random.Range(0, Config.PossibleEffects.Count)];
+    
+    private string NextEffect() => _plugin.Config.PossibleEffects[UnityEngine.Random.Range(0, _plugin.Config.PossibleEffects.Count)];
   }
 }

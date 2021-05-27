@@ -4,9 +4,9 @@
     using Exiled.API.Features;
     using PlayerEvent = Exiled.Events.Handlers.Player;
     
-    public class LuckyPills : Plugin<Config>
+    public class Plugin : Plugin<Config>
     {
-        public override string Author { get; } = "Parkeymon";
+        public override string Author { get; } = "Reddking improved by Parkeymon";
         public override string Name { get; } = "Lucky Pills";
         public override Version Version { get; } = new Version(1, 0, 0);
         public override Version RequiredExiledVersion { get; } = new Version(2, 8, 0, 0);
@@ -15,16 +15,22 @@
 
         public override void OnEnabled()
         {
-            _eventHandler = new EventHandlers();
+            _eventHandler = new EventHandlers(this);
 
             PlayerEvent.UsingMedicalItem += _eventHandler.OnEatThePill;
+            PlayerEvent.PickingUpItem += _eventHandler.OnPickupPill;
+            
+            base.OnEnabled();
         }
 
         public override void OnDisabled()
         {
+            PlayerEvent.UsingMedicalItem -= _eventHandler.OnEatThePill;
+            PlayerEvent.PickingUpItem -= _eventHandler.OnPickupPill;
+            
             _eventHandler = null;
             
-            PlayerEvent.UsingMedicalItem -= _eventHandler.OnEatThePill;
+            base.OnDisabled();
         }
     }
 }
