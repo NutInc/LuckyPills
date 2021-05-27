@@ -175,45 +175,67 @@
         case "amnesia":
           ev.Player.ShowHint($"You've been given amnesia for {num} seconds");
           break;
+        
         case "bleeding":
           ev.Player.ShowHint($"You've been given bleeding for {num} seconds");
           break;
+        
         case "bombvomit":
           ev.Player.ShowHint($"You've been given bomb vomit for {num} seconds");
           break;
+        
+        case "flashvomit":
+          ev.Player.ShowHint($"You've been given flash vomit for {num} seconds");
+          break;
+        
+        case "ballvomit":
+          ev.Player.ShowHint($"You've been given flash vomit for {num} seconds");
+          break;
+        
         case "corroding":
           ev.Player.ShowHint("You've been sent to the pocket dimension");
           break;
+        
         case "decontaminating":
           ev.Player.ShowHint($"You've been given decontamination for {num} seconds");
           break;
+        
         case "explode":
           ev.Player.ShowHint("You've been exploded");
           break;
+        
         case "flashed":
           ev.Player.ShowHint("You've been flashed");
           break;
+        
         case "god":
           ev.Player.ShowHint($"You've been given god mode for {num} seconds");
           break;
+        
         case "hemorrhage":
           ev.Player.ShowHint($"You've been hemorrhaged for {num} seconds");
           break;
+        
         case "mutate":
           ev.Player.ShowHint($"You've been mutated for {num} seconds");
           break;
+        
         case "panic":
           ev.Player.ShowHint($"You've been panicked for {num} seconds");
           break;
+        
         case "paper":
           ev.Player.ShowHint($"You've been turned into paper for {num} seconds");
           break;
+        
         case "sinkhole":
           ev.Player.ShowHint($"You've been given sinkhole effect for {num} seconds");
           break;
+        
         case "upsidedown":
           ev.Player.ShowHint($"You've been converted to Australian for {num} seconds");
           break;
+        
         default:
           ev.Player.ShowHint($"You've been {type} for {num} seconds");
           break;
