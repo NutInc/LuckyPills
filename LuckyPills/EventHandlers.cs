@@ -85,7 +85,10 @@
       for (var i = 0; i < randomTimer * 10.0 && player.IsAlive; ++i)
       {
         yield return Timing.WaitForSeconds(_plugin.Config.BallVomitInterval);
+        player.Health -= 1;
         SpawnGrenadeOnPlayer(player, GrenadeType.Scp018, 5f);
+        if (!(player.Health < 0)) continue;
+        player.Kill();
       }
     }
 
@@ -189,7 +192,7 @@
           break;
         
         case "ballvomit":
-          ev.Player.ShowHint($"You've been given flash vomit for {num} seconds");
+          ev.Player.ShowHint($"You've been given ball vomit for {num} seconds");
           break;
         
         case "corroding":
