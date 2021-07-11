@@ -172,7 +172,7 @@
           break;
       }
 
-      ev.Player.ReferenceHub.playerEffectsController.EnableByString(type, num);
+      ev.Player.EnableEffect(type, num, true);
       switch (type)
       {
         case "amnesia":
