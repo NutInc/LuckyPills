@@ -176,25 +176,12 @@
       switch (type)
       {
         case "amnesia":
-          ev.Player.ShowHint($"You've been given amnesia for {num} seconds");
-          break;
-        
         case "bleeding":
-          ev.Player.ShowHint($"You've been given bleeding for {num} seconds");
-          break;
-        
         case "bombvomit":
-          ev.Player.ShowHint($"You've been given bomb vomit for {num} seconds");
-          break;
-        
         case "flashvomit":
-          ev.Player.ShowHint($"You've been given flash vomit for {num} seconds");
-          break;
-        
         case "ballvomit":
-          ev.Player.ShowHint($"You've been given ball vomit for {num} seconds");
+          ev.Player.ShowHint($"You've been given {type} for {num} seconds");
           break;
-        
         case "corroding":
           ev.Player.ShowHint("You've been sent to the pocket dimension");
           break;
