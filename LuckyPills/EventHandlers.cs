@@ -1,17 +1,11 @@
-﻿using InventorySystem;
-
-namespace LuckyPills
+﻿namespace LuckyPills
 {
   using Exiled.API.Enums;
   using Exiled.API.Features;
   using Exiled.Events.EventArgs;
   using MEC;
-  using Mirror;
-  using System;
   using System.Collections.Generic;
-  using System.Linq;
   using UnityEngine;
-  
   public class EventHandlers
   {
 
@@ -27,7 +21,7 @@ namespace LuckyPills
       float timer,
       float velocity = 1f)
     {
-      bool fullForce = !(velocity < 1);
+      bool fullForce = !(velocity >= 1);
       ply.ThrowGrenade(grenadeType, fullForce);
     }
 
