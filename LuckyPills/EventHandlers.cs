@@ -21,7 +21,7 @@
       float timer,
       float velocity = 1f)
     {
-      bool fullForce = !(velocity >= 1);
+      bool fullForce = velocity >= 1;
       ply.ThrowGrenade(grenadeType, fullForce);
     }
 
