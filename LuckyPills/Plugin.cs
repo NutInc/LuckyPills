@@ -8,7 +8,7 @@
     {
         public override string Author { get; } = "Reddking improved by Parkeymon";
         public override string Name { get; } = "Lucky Pills";
-        public override Version Version { get; } = new Version(2, 1, 2);
+        public override Version Version { get; } = new Version(3, 1, 2);
         public override Version RequiredExiledVersion { get; } = new Version(3, 0, 0, 0);
 
         private EventHandlers _eventHandler;
