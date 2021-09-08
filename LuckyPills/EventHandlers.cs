@@ -1,9 +1,10 @@
-﻿namespace LuckyPills
+﻿using InventorySystem;
+
+namespace LuckyPills
 {
   using Exiled.API.Enums;
   using Exiled.API.Features;
   using Exiled.Events.EventArgs;
-  using Grenades;
   using MEC;
   using Mirror;
   using System;
@@ -26,37 +27,8 @@
       float timer,
       float velocity = 1f)
     {
-      var plyGrenadeManager = ply.GrenadeManager;
-      GrenadeSettings grenadeSettings;
-      switch (grenadeType)
-      {
-        case GrenadeType.FragGrenade:
-          grenadeSettings = plyGrenadeManager.availableGrenades.FirstOrDefault(g => g.inventoryID == ItemType.GrenadeFrag);
-          break;
-        case GrenadeType.Flashbang:
-          grenadeSettings = plyGrenadeManager.availableGrenades.FirstOrDefault(g => g.inventoryID == ItemType.GrenadeFlash);
-          break;
-        case GrenadeType.Scp018:
-          grenadeSettings = plyGrenadeManager.availableGrenades.FirstOrDefault(g => g.inventoryID == ItemType.SCP018);
-          break;
-        default:
-          throw new ArgumentOutOfRangeException(nameof(grenadeType), grenadeType, null);
-      }
-      Grenade grenade;
-      if (grenadeType != GrenadeType.Scp018)
-      {
-        grenade = UnityEngine.Object.Instantiate(grenadeSettings?.grenadeInstance).GetComponent<Grenade>();
-        grenade.fuseDuration = timer;
-        grenade.InitData(plyGrenadeManager, Vector3.zero, plyGrenadeManager.hub.PlayerCameraReference.forward, velocity);
-      }
-      else
-      {
-        var relativeVelocity = new Vector3(UnityEngine.Random.Range(0.0f, 2f), UnityEngine.Random.Range(0.0f, 2f), UnityEngine.Random.Range(0.0f, 2f));
-        grenade = UnityEngine.Object.Instantiate(grenadeSettings?.grenadeInstance).GetComponent<Scp018Grenade>();
-        grenade.fuseDuration = timer;
-        grenade.InitData(plyGrenadeManager, relativeVelocity, ply.ReferenceHub.PlayerCameraReference.forward, velocity);
-      }
-      NetworkServer.Spawn(grenade.gameObject);
+      bool fullForce = !(velocity < 1);
+      ply.ThrowGrenade(grenadeType, fullForce);
     }
 
     private IEnumerator<float> GrenadeVomitTime(Player player, float randomTimer)
@@ -94,29 +66,26 @@
 
     public void OnPickupPill(PickingUpItemEventArgs ev)
     {
-      if (ev.Pickup.ItemId == ItemType.Painkillers)
+      if (ev.Pickup.Type == ItemType.Painkillers)
       {
         ev.Player.ShowHint(_plugin.Config.PickupMessage);
       }
     }
     
-    public void OnEatThePill(UsingMedicalItemEventArgs ev)
+    public void OnEatThePill(UsingItemEventArgs ev)
     {
       Timing.RunCoroutine(RunPillCoroutine(ev));
     }
 
-    private IEnumerator<float> RunPillCoroutine(UsingMedicalItemEventArgs ev)
+    private IEnumerator<float> RunPillCoroutine(UsingItemEventArgs ev)
     {
       yield return Timing.WaitForSeconds(3f);
-      if (ev.Item != ItemType.Painkillers)
+      if (ev.Item.Base.ItemTypeId != ItemType.Painkillers)
         yield break;
       var type = this.NextEffect();
       var num = UnityEngine.Random.Range(_plugin.Config.MinDuration, _plugin.Config.MaxDuration);
-      ev.Player.RemoveItem();
-      ev.Player.CurrentItem = new Inventory.SyncItemInfo()
-      {
-        id = ItemType.None
-      };
+      ev.Player.RemoveItem(ev.Item);
+      Log.Debug($"Effect type: {type}");
       switch (type)
       {
         case "explode":
@@ -130,8 +99,8 @@
         {
           var cachedMutatorRole = ev.Player.Role;
           ev.Player.DropItems();
-          ev.Player.SetRole(RoleType.Scp0492, true);
-          Timing.CallDelayed(num, () => ev.Player.SetRole(cachedMutatorRole, true));
+          ev.Player.SetRole(RoleType.Scp0492);
+          Timing.CallDelayed(num, () => ev.Player.SetRole(cachedMutatorRole));
           break;
         }
         case "god":

@@ -15,8 +15,12 @@ namespace LuckyPills
         [Description("Amount of heath done to the player every flash interval. (Used to reduce flash time)")]
         public int FlashVomitHealth { get; set; } = 5;
         public float BallVomitInterval { get; set; } = 0.2f;
-        
-        public List<string> PossibleEffects { get; set; }
+
+        public List<string> PossibleEffects { get; set; } = new List<string>()
+        {
+            "mutate",
+            "explode"
+        };
 
         public float MinDuration { get; set; } = 5f;
 
