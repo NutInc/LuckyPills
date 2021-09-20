@@ -6,7 +6,7 @@
     
     public class Plugin : Plugin<Config>
     {
-        public override string Author { get; } = "Reddking improved by Parkeymon and RedRanger";
+        public override string Author { get; } = "Reddking improved by NutInc dev team";
         public override string Name { get; } = "Lucky Pills";
         public override Version Version { get; } = new Version(3, 1, 2);
         public override Version RequiredExiledVersion { get; } = new Version(3, 0, 0, 0);
