@@ -79,7 +79,6 @@
       var type = this.NextEffect();
       var num = UnityEngine.Random.Range(_plugin.Config.MinDuration, _plugin.Config.MaxDuration);
       ev.Player.RemoveItem(ev.Item);
-      Log.Debug($"Effect type: {type}");
       switch (type)
       {
         case "explode":
