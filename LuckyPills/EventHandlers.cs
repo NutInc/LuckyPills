@@ -1,4 +1,7 @@
-﻿namespace LuckyPills
+﻿using CustomPlayerEffects;
+using Exiled.API.Features.Items;
+
+namespace LuckyPills
 {
   using Exiled.API.Enums;
   using Exiled.API.Features;
@@ -83,7 +86,10 @@
       {
         case "explode":
         {
-          SpawnGrenadeOnPlayer(ev.Player, GrenadeType.FragGrenade, 0.1f);
+          ExplosiveGrenade exp = new ExplosiveGrenade(ItemType.GrenadeHE, null);
+          exp.ScpMultiplier = 0;
+          exp.FuseTime = 0;
+          exp.SpawnActive(ev.Player.Position);
           if (ev.Player.IsAlive)
             ev.Player.Kill(DamageTypes.Grenade);
           break;
@@ -138,10 +144,12 @@
       switch (type)
       {
         case "amnesia":
+          ev.Player.EnableEffect<Amnesia>(num);
           ev.Player.ShowHint($"You've been given amnesia for {num} seconds");
           break;
         
         case "bleeding":
+          ev.Player.EnableEffect<Bleeding>(num);
           ev.Player.ShowHint($"You've been given bleeding for {num} seconds");
           break;
         
@@ -158,10 +166,12 @@
           break;
         
         case "corroding":
+          ev.Player.EnableEffect<Corroding>(num);
           ev.Player.ShowHint("You've been sent to the pocket dimension");
           break;
         
         case "decontaminating":
+          ev.Player.EnableEffect<Decontaminating>(num);
           ev.Player.ShowHint($"You've been given decontamination for {num} seconds");
           break;
         
@@ -170,6 +180,9 @@
           break;
         
         case "flashed":
+          FlashGrenade exp = new FlashGrenade(ItemType.GrenadeFlash);
+          exp.FuseTime = 0;
+          exp.SpawnActive(ev.Player.Position);
           ev.Player.ShowHint("You've been flashed");
           break;
         
@@ -178,6 +191,7 @@
           break;
         
         case "hemorrhage":
+          ev.Player.EnableEffect<Hemorrhage>(num);
           ev.Player.ShowHint($"You've been hemorrhaged for {num} seconds");
           break;
         
@@ -186,6 +200,7 @@
           break;
         
         case "panic":
+          ev.Player.EnableEffect<Panic>(num);
           ev.Player.ShowHint($"You've been panicked for {num} seconds");
           break;
         
@@ -194,6 +209,7 @@
           break;
         
         case "sinkhole":
+          ev.Player.EnableEffect<SinkHole>(num);
           ev.Player.ShowHint($"You've been given sinkhole effect for {num} seconds");
           break;
         

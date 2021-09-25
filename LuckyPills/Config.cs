@@ -24,7 +24,14 @@
             "bombvomit",
             "flashvomit",
             "ballvomit",
-            "scp268"
+            "scp268",
+            "amnesia",
+            "bleeding",
+            "corroding",
+            "decontaminating",
+            "hemorrhage",
+            "panic",
+            "sinkhole"
         };
         public float MinDuration { get; set; } = 5f;
 
