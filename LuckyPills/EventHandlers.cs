@@ -115,6 +115,7 @@ namespace LuckyPills
         case "upsidedown":
           ev.Player.Scale = new Vector3(1f, -1f, 1f);
           Timing.CallDelayed(num, () => ev.Player.Scale = new Vector3(1f, 1f, 1f));
+          ev.Player.Position += new Vector3(0, 1, 0);
           break;
         
         case "flattened":
