@@ -42,10 +42,8 @@ namespace LuckyPills
       for (var i = 0; i < randomTimer * 10.0 && player.IsAlive; ++i)
       {
         yield return Timing.WaitForSeconds(_plugin.Config.FlashVomitInterval);
-        player.Health -= 1;
+        player.Hurt(1);
         SpawnGrenadeOnPlayer(player, GrenadeType.Flashbang, 5f);
-        if (!(player.Health < 0)) continue;
-        player.Kill();
       }
     }
     
@@ -54,10 +52,8 @@ namespace LuckyPills
       for (var i = 0; i < randomTimer * 10.0 && player.IsAlive; ++i)
       {
         yield return Timing.WaitForSeconds(_plugin.Config.BallVomitInterval);
-        player.Health -= 1;
+        player.Hurt(1);
         SpawnGrenadeOnPlayer(player, GrenadeType.Scp018, 5f);
-        if (!(player.Health < 0)) continue;
-        player.Kill();
       }
     }
 
@@ -86,12 +82,11 @@ namespace LuckyPills
       {
         case "explode":
         {
-          ExplosiveGrenade exp = new ExplosiveGrenade(ItemType.GrenadeHE, null);
-          exp.ScpMultiplier = 0;
-          exp.FuseTime = 0;
-          exp.SpawnActive(ev.Player.Position);
+          var grenade = (ExplosiveGrenade) Item.Create(ItemType.GrenadeHE);
+          grenade.FuseTime = .5f;
+          grenade.SpawnActive(ev.Player.Position);
           if (ev.Player.IsAlive)
-            ev.Player.Kill(DamageTypes.Grenade);
+            ev.Player.Kill(DamageType.Explosion);
           break;
         }
         case "mutate":
@@ -181,9 +176,9 @@ namespace LuckyPills
           break;
         
         case "flashed":
-          FlashGrenade exp = new FlashGrenade(ItemType.GrenadeFlash);
-          exp.FuseTime = 0;
-          exp.SpawnActive(ev.Player.Position);
+          var grenade = (ExplosiveGrenade) Item.Create(ItemType.GrenadeFlash);
+          grenade.FuseTime = .5f;
+          grenade.SpawnActive(ev.Player.Position);
           ev.Player.ShowHint("You've been flashed");
           break;
         
@@ -199,12 +194,7 @@ namespace LuckyPills
         case "mutate":
           ev.Player.ShowHint($"You've been mutated for {num} seconds");
           break;
-        
-        case "panic":
-          ev.Player.EnableEffect<Panic>(num);
-          ev.Player.ShowHint($"You've been panicked for {num} seconds");
-          break;
-        
+
         case "paper":
           ev.Player.ShowHint($"You've been turned into paper for {num} seconds");
           break;

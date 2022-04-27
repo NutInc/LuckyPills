@@ -23,7 +23,6 @@
             "flattened",
             "bombvomit",
             "flashvomit",
-            "ballvomit",
             "scp268",
             "amnesia",
             "bleeding",
