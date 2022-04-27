@@ -6,10 +6,10 @@
     
     public class Plugin : Plugin<Config>
     {
-        public override string Author { get; } = "NutInc";
+        public override string Author { get; } = "Nut Inc";
         public override string Name { get; } = "Lucky Pills";
-        public override Version Version { get; } = new Version(3, 1, 5);
-        public override Version RequiredExiledVersion { get; } = new Version(3, 0, 0, 0);
+        public override Version Version { get; } = new Version(3, 2, 0);
+        public override Version RequiredExiledVersion { get; } = new Version(5, 0, 0, 0);
 
         private EventHandlers _eventHandler;
 
