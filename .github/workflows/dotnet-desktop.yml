@@ -41,6 +41,8 @@ jobs:
 
     - name: Build
       run: msbuild LuckyPills.sln -p:Configuration=release
+      env:
+        EXILED_REFERENCES: ${{ github.workspace }}\lib
 
     - name: Upload Build
       uses: actions/upload-artifact@v2
