@@ -75,7 +75,7 @@ namespace LuckyPills
             Item item = ev.Item;
             Player player = ev.Player;
 
-            if (item.Base.ItemTypeId == ItemType.Painkillers) yield break;
+            if (item.Base.ItemTypeId == ItemType.Painkillers || player.IsInPocketDimension) yield break;
 
             string effectType = this.NextEffect();
             float duration = Mathf.Ceil(Random.Range(config.MinDuration, config.MaxDuration));
