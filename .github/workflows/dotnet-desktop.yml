@@ -8,42 +8,47 @@ on:
     branches:
       - master
 
+env:
+  EXILED_REFERENCES_PATH: ${{ github.workspace }}/LuckyPills/lib
+
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
-    
-    - name: Setup Nuget
-      uses: iRebbok/setup-nuget@master
-    
-    - name: Restore Packages
-      run: nuget restore LuckyPills.sln
-      
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1
+      - uses: actions/checkout@v2
 
-    - name: Download references
-      uses: carlosperate/download-file-action@v1.0.3
-      with:
-        file-url: 'https://www.exiled.host/build_deps/References.zip'
-        file-name: 'References.zip'
+      - name: Setup Nuget
+        uses: iRebbok/setup-nuget@master
 
-    - name: Download 7zip
-      uses: carlosperate/download-file-action@v1.0.3
-      with:
-        file-url: 'https://www.exiled.host/7za.exe'
-        file-name: '7zip.exe'
+      - name: Restore Packages
+        run: nuget restore LuckyPills.sln
 
-    - name: Extract Refs
-      run: ./7zip.exe e References.zip -oLuckyPills/lib/ -r -y
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1
 
-    - name: Build
-      run: msbuild LuckyPills.sln -p:Configuration=release
+      - name: Download references
+        uses: carlosperate/download-file-action@v1.0.3
+        with:
+          file-url: 'https://www.exiled.host/build_deps/References.zip'
+          file-name: 'References.zip'
 
-    - name: Upload Build
-      uses: actions/upload-artifact@v2
-      with:
-        name: Plugin DLL
-        path: LuckyPills/bin/Release/LuckyPills*.dll
+      - name: Download 7zip
+        uses: carlosperate/download-file-action@v1.0.3
+        with:
+          file-url: 'https://www.exiled.host/7za.exe'
+          file-name: '7zip.exe'
+
+      - name: Extract Refs
+        run: ./7zip.exe e References.zip -oLuckyPills/lib/ -r -y
+
+      - name: Build
+        env:
+          EXILED_REFERENCES: ${{ env.EXILED_REFERENCES_PATH }}
+        run: msbuild LuckyPills.sln -p:Configuration=release
+
+      - name: Upload Build
+        uses: actions/upload-artifact@v2
+        with:
+          name: Plugin DLL
+          path: LuckyPills\bin\Release\net472\LuckyPills*.dll
