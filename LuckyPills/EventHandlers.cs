@@ -1,219 +1,203 @@
-﻿using CustomPlayerEffects;
+﻿using System.Collections.Generic;
+using UnityEngine;
+using Exiled.API.Enums;
+using Exiled.API.Features;
 using Exiled.API.Features.Items;
+using Exiled.Events.EventArgs;
+using MEC;
+using CustomPlayerEffects;
 
 namespace LuckyPills
 {
-  using Exiled.API.Enums;
-  using Exiled.API.Features;
-  using Exiled.Events.EventArgs;
-  using MEC;
-  using System.Collections.Generic;
-  using UnityEngine;
-  public class EventHandlers
-  {
+    public class EventHandlers
+    {
+        private readonly Plugin plugin;
+        private readonly Config config;
 
-    private readonly Plugin _plugin;
-
-    public EventHandlers(Plugin plugin)
-    {
-      _plugin = plugin;
-    }
-
-    private static void SpawnGrenadeOnPlayer(Player ply,
-      GrenadeType grenadeType,
-      float timer,
-      float velocity = 1f)
-    {
-      bool fullForce = velocity >= 1;
-      ply.ThrowGrenade(grenadeType, fullForce);
-    }
-
-    private IEnumerator<float> GrenadeVomitTime(Player player, float randomTimer)
-    {
-      for (var i = 0; i < randomTimer * 10.0 && player.IsAlive; ++i)
-      {
-        yield return Timing.WaitForSeconds(_plugin.Config.GrenadeVomitInterval);
-        SpawnGrenadeOnPlayer(player, GrenadeType.FragGrenade, 5f);
-      }
-    }
-    
-    private IEnumerator<float> FlashVomitTime(Player player, float randomTimer)
-    {
-      for (var i = 0; i < randomTimer * 10.0 && player.IsAlive; ++i)
-      {
-        yield return Timing.WaitForSeconds(_plugin.Config.FlashVomitInterval);
-        player.Hurt(1);
-        SpawnGrenadeOnPlayer(player, GrenadeType.Flashbang, 5f);
-      }
-    }
-    
-    private IEnumerator<float> BallVomitTime(Player player, float randomTimer)
-    {
-      for (var i = 0; i < randomTimer * 10.0 && player.IsAlive; ++i)
-      {
-        yield return Timing.WaitForSeconds(_plugin.Config.BallVomitInterval);
-        player.Hurt(1);
-        SpawnGrenadeOnPlayer(player, GrenadeType.Scp018, 5f);
-      }
-    }
-
-    public void OnPickupPill(PickingUpItemEventArgs ev)
-    {
-      if (ev.Pickup.Type == ItemType.Painkillers)
-      {
-        ev.Player.ShowHint(_plugin.Config.PickupMessage);
-      }
-    }
-    
-    public void OnEatThePill(UsingItemEventArgs ev)
-    {
-      Timing.RunCoroutine(RunPillCoroutine(ev));
-    }
-
-    private IEnumerator<float> RunPillCoroutine(UsingItemEventArgs ev)
-    {
-      yield return Timing.WaitForSeconds(3f);
-      if (ev.Item.Base.ItemTypeId != ItemType.Painkillers)
-        yield break;
-      var type = this.NextEffect();
-      var num = UnityEngine.Random.Range(_plugin.Config.MinDuration, _plugin.Config.MaxDuration);
-      ev.Player.RemoveItem(ev.Item);
-      switch (type)
-      {
-        case "explode":
+        public EventHandlers(Plugin plugin)
         {
-          var grenade = (ExplosiveGrenade) Item.Create(ItemType.GrenadeHE);
-          grenade.FuseTime = .5f;
-          grenade.SpawnActive(ev.Player.Position);
-          if (ev.Player.IsAlive)
-            ev.Player.Kill(DamageType.Explosion);
-          break;
+            this.plugin = plugin;
+            this.config = plugin.Config;
         }
-        case "mutate":
+
+        private static void SpawnGrenadeOnPlayer(Player player, GrenadeType grenadeType, float timer, float velocity = 1f)
         {
-          var cachedMutatorRole = ev.Player.Role;
-          ev.Player.DropItems();
-          ev.Player.SetRole(RoleType.Scp0492);
-          Timing.CallDelayed(num, () => ev.Player.SetRole(cachedMutatorRole));
-          break;
+            bool fullForce = velocity >= 1;
+            player.ThrowGrenade(grenadeType, fullForce);
         }
-        case "god":
-          ev.Player.IsGodModeEnabled = true;
-          Timing.CallDelayed(num, () => ev.Player.IsGodModeEnabled = false);
-          break;
-        
-        case "paper":
-          ev.Player.Scale = new Vector3(1f, 1f, 0.01f);
-          Timing.CallDelayed(num, () => ev.Player.Scale = new Vector3(1f, 1f, 1f));
-          break;
-        
-        case "upsidedown":
-          ev.Player.Scale = new Vector3(1f, -1f, 1f);
-          Timing.CallDelayed(num, () => ev.Player.Scale = new Vector3(1f, 1f, 1f));
-          ev.Player.Position += new Vector3(0, 1, 0);
-          break;
-        
-        case "flattened":
-          ev.Player.Scale = new Vector3(1f, 0.5f, 1f);
-          Timing.CallDelayed(num, () => ev.Player.Scale = new Vector3(1f, 1f, 1f));
-          break;
-        
-        case "bombvomit":
-          Timing.RunCoroutine(GrenadeVomitTime(ev.Player, num));
-          break;
-        
-        case "flashvomit":
-          Timing.RunCoroutine(FlashVomitTime(ev.Player, num));
-          break;
-        
-        case "ballvomit":
-          Timing.RunCoroutine(BallVomitTime(ev.Player, num));
-          break;
-        
-        case "scp268":
-          ev.Player.IsInvisible = true;
-          Timing.CallDelayed(num, () => ev.Player.IsInvisible = false);
-          break;
-      }
 
-      ev.Player.EnableEffect(type, num, true);
-      switch (type)
-      {
-        case "amnesia":
-          ev.Player.EnableEffect<Amnesia>(num);
-          ev.Player.ShowHint($"You've been given amnesia for {num} seconds");
-          break;
-        
-        case "bleeding":
-          ev.Player.EnableEffect<Bleeding>(num);
-          ev.Player.ShowHint($"You've been given bleeding for {num} seconds");
-          break;
-        
-        case "bombvomit":
-          ev.Player.ShowHint($"You've been given bomb vomit for {num} seconds");
-          break;
-        
-        case "flashvomit":
-          ev.Player.ShowHint($"You've been given flash vomit for {num} seconds");
-          break;
-        
-        case "ballvomit":
-          ev.Player.ShowHint($"You've been given ball vomit for {num} seconds");
-          break;
-        
-        case "corroding":
-          ev.Player.EnableEffect<Corroding>(num);
-          ev.Player.ShowHint("You've been sent to the pocket dimension");
-          break;
-        
-        case "decontaminating":
-          ev.Player.EnableEffect<Decontaminating>(num);
-          ev.Player.ShowHint($"You've been given decontamination for {num} seconds");
-          break;
-        
-        case "explode":
-          ev.Player.ShowHint("You've been exploded");
-          break;
-        
-        case "flashed":
-          var grenade = (ExplosiveGrenade) Item.Create(ItemType.GrenadeFlash);
-          grenade.FuseTime = .5f;
-          grenade.SpawnActive(ev.Player.Position);
-          ev.Player.ShowHint("You've been flashed");
-          break;
-        
-        case "god":
-          ev.Player.ShowHint($"You've been given god mode for {num} seconds");
-          break;
-        
-        case "hemorrhage":
-          ev.Player.EnableEffect<Hemorrhage>(num);
-          ev.Player.ShowHint($"You've been hemorrhaged for {num} seconds");
-          break;
-        
-        case "mutate":
-          ev.Player.ShowHint($"You've been mutated for {num} seconds");
-          break;
+        private IEnumerator<float> GrenadeVomitTime(Player player, float randomTimer)
+        {
+            for (var i = 0; i < randomTimer * 10.0 && player.IsAlive; ++i)
+            {
+                yield return Timing.WaitForSeconds(plugin.Config.GrenadeVomitInterval);
+                SpawnGrenadeOnPlayer(player, GrenadeType.FragGrenade, 5f);
+            }
+        }
 
-        case "paper":
-          ev.Player.ShowHint($"You've been turned into paper for {num} seconds");
-          break;
-        
-        case "sinkhole":
-          ev.Player.EnableEffect<SinkHole>(num);
-          ev.Player.ShowHint($"You've been given sinkhole effect for {num} seconds");
-          break;
-        
-        case "upsidedown":
-          ev.Player.ShowHint($"You've been converted to Australian for {num} seconds");
-          break;
-        
-        default:
-          ev.Player.ShowHint($"You've been {type} for {num} seconds");
-          break;
-      }
+        private IEnumerator<float> FlashVomitTime(Player player, float randomTimer)
+        {
+            for (var i = 0; i < randomTimer * 10.0 && player.IsAlive; ++i)
+            {
+                yield return Timing.WaitForSeconds(plugin.Config.FlashVomitInterval);
+                player.Hurt(1);
+                SpawnGrenadeOnPlayer(player, GrenadeType.Flashbang, 5f);
+            }
+        }
+
+        private IEnumerator<float> BallVomitTime(Player player, float randomTimer)
+        {
+            for (var i = 0; i < randomTimer * 10.0 && player.IsAlive; ++i)
+            {
+                yield return Timing.WaitForSeconds(plugin.Config.BallVomitInterval);
+                player.Hurt(1);
+                SpawnGrenadeOnPlayer(player, GrenadeType.Scp018, 5f);
+            }
+        }
+
+        public void OnPickupPill(PickingUpItemEventArgs ev)
+        {
+            if (ev.Pickup.Type == ItemType.Painkillers)
+            {
+                ev.Player.ShowHint(plugin.Config.PickupMessage);
+            }
+        }
+
+        public void OnEatThePill(UsingItemEventArgs ev)
+        {
+            Timing.RunCoroutine(RunPillCoroutine(ev));
+        }
+
+        private IEnumerator<float> RunPillCoroutine(UsingItemEventArgs ev)
+        {
+            yield return Timing.WaitForSeconds(3f);
+            
+            Item item = ev.Item;
+            Player player = ev.Player;
+
+            if (item.Base.ItemTypeId == ItemType.Painkillers || player.IsInPocketDimension) yield break;
+
+            string effectType = this.NextEffect();
+            float duration = Mathf.Ceil(Random.Range(config.MinDuration, config.MaxDuration));
+
+            player.RemoveItem(item);
+
+            player.EnableEffect(effectType, duration, true);
+
+            switch(effectType)
+            {
+                case "amnesia":
+                    player.EnableEffect<Amnesia>(duration);
+                    player.ShowHint($"You've been given amnesia for {duration} seconds");
+
+                    break;
+                case "bleeding":
+                    player.EnableEffect<Bleeding>(duration);
+                    player.ShowHint($"You've been given bleeding for {duration} seconds");
+
+                    break;
+                case "bombvomit":
+                    Timing.RunCoroutine(GrenadeVomitTime(player, duration));
+                    player.ShowHint($"You've been given bomb vomit for {duration} seconds");
+
+                    break;
+                case "ballvomit":
+                    Timing.RunCoroutine(BallVomitTime(player, duration));
+                    player.ShowHint($"You've been given ball vomit for {duration} seconds");
+
+                    break;
+                case "corroding":
+                    player.EnableEffect<Corroding>(duration);
+                    player.ShowHint("You've been sent to the pocket dimension");
+
+                    break;
+                case "decontaminating":
+                    player.EnableEffect<Decontaminating>(duration);
+                    player.ShowHint($"You've been given decontamination for {duration} seconds");
+
+                    break;
+                case "explode":
+                    ExplosiveGrenade explosiveGrenade = (ExplosiveGrenade)Item.Create(ItemType.GrenadeHE);
+
+                    explosiveGrenade.FuseTime = .5f;
+                    explosiveGrenade.SpawnActive(ev.Player.Position);
+
+                    if (player.IsAlive)
+                        player.Kill(DamageType.Explosion);
+
+                    player.ShowHint("You've been exploded");
+
+                    break;
+                case "flashed":
+                    FlashGrenade flashGrenade = (FlashGrenade)Item.Create(ItemType.GrenadeFlash);
+                    flashGrenade.FuseTime = .5f;
+                    flashGrenade.SpawnActive(ev.Player.Position);
+
+                    player.ShowHint("You've been flashed");
+
+                    break;
+                case "flashvomit":
+                    Timing.RunCoroutine(FlashVomitTime(player, duration));
+                    player.ShowHint($"You've been given flash vomit for {duration} seconds");
+
+                    break;
+                case "god":
+                    player.IsGodModeEnabled = true;
+                    Timing.CallDelayed(duration, () => player.IsGodModeEnabled = false);
+                    player.ShowHint($"You've been given god mode for {duration} seconds");
+
+                    break;
+                case "hemorrhage":
+                    player.EnableEffect<Hemorrhage>(duration);
+                    player.ShowHint($"You've been hemorrhaged for {duration} seconds");
+
+                    break;
+                case "mutate":
+                    Exiled.API.Features.Roles.Role cachedMutatorRole = player.Role;
+
+                    player.DropItems();
+                    player.SetRole(RoleType.Scp0492, SpawnReason.ForceClass, true);
+
+                    Timing.CallDelayed(duration, () => player.SetRole(cachedMutatorRole, SpawnReason.ForceClass, true));
+
+                    player.ShowHint($"You've been mutated for {duration} seconds");
+
+                    break;
+                case "paper":
+                    player.Scale = new Vector3(1f, 1f, 0.01f);
+                    Timing.CallDelayed(duration, () => player.Scale = new Vector3(1f, 1f, 1f));
+                    player.ShowHint($"You've been turned into paper for {duration} seconds");
+
+                    break;
+                case "sinkhole":
+                    player.EnableEffect<SinkHole>(duration);
+                    player.ShowHint($"You've been given sinkhole effect for {duration} seconds");
+
+                    break;
+                case "scp268":
+                    player.IsInvisible = true;
+                    Timing.CallDelayed(duration, () => player.IsInvisible = false);
+
+                    player.ShowHint($"You've been turned invisible for {duration} seconds");
+
+                    break;
+                case "upsidedown":
+                    player.Scale = new Vector3(1f, -1f, 1f);
+                    Timing.CallDelayed(duration, () =>
+                    {
+                        player.Scale = new Vector3(1f, 1f, 1f);
+                        player.Position += new Vector3(0, 1, 0);
+                    });
+
+                    player.ShowHint($"You've been converted to Australian for {duration} seconds");
+
+                    break;
+                default:
+                    player.ShowHint($"You've been {effectType} for {duration} seconds");
+                    break;
+            }
+        }
+
+        private string NextEffect() => plugin.Config.PossibleEffects[Random.Range(0, config.PossibleEffects.Count)];
     }
-    
-    private string NextEffect() => _plugin.Config.PossibleEffects[UnityEngine.Random.Range(0, _plugin.Config.PossibleEffects.Count)];
-  }
 }
